@@ -86,6 +86,17 @@
 /// This requires PACKETVER 2011-08-17 or newer.
 #define PACKET_OBFUSCATION
 
+#ifdef PACKET_OBFUSCATION
+	// If you want to use custom keys, feel free to do so here
+	//#define PACKET_OBFUSCATION_CUSTOM
+
+	#ifdef PACKET_OBFUSCATION_CUSTOM
+		#define PACKET_OBFUSCATION_KEY1 0x0
+		#define PACKET_OBFUSCATION_KEY2 0x0
+		#define PACKET_OBFUSCATION_KEY3 0x0
+	#endif
+#endif
+
 /**
  * No settings past this point
  **/

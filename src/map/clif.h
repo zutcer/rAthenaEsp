@@ -63,13 +63,6 @@ struct s_packet_db {
 	short pos[MAX_PACKET_POS];
 };
 
-#ifdef PACKET_OBFUSCATION
-/// Keys based on packet versions
-struct s_packet_keys {
-	unsigned int keys[3]; ///< 3-Keys
-};
-#endif
-
 enum e_BANKING_DEPOSIT_ACK {
 	BDA_SUCCESS  = 0x0,
 	BDA_ERROR    = 0x1,
