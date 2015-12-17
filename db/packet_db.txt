@@ -34,12 +34,6 @@
 // Client detection is faster when all clients use this version.
 // Version 23 is the latest Sakexe (above versions are for Renewal clients)
 //
-// packet_keys values are default value for each packet version, if no value
-// or value is 'default' in packet_keys_use, server will uses default keys
-// according to used packet_db_ver. packet_keys_use is user-defined keys.
-// Maximum key value is 0x7FFFFFFF.
-// NOTE: Keys won't be reloaded, initialized on first load only.
-//
 //packet_db_ver: 46
 packet_db_ver: default
 

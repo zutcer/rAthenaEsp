@@ -53,7 +53,6 @@
 #include <time.h>
 
 #ifdef PACKET_OBFUSCATION
-	// TODO We state this date on core.h, but actually the first we have is 2011-10-05 for RagexeRE and 2011-11-02 for Ragexe
 	#if PACKETVER < 20110817
 		#error You enabled packet obfuscation for a version which is to old.
 	#else
