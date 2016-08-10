@@ -3721,12 +3721,14 @@ void clif_equipitemack(struct map_session_data *sd,int n,int pos,uint8 flag)
 	switch (cmd) {
 		case 0xaa:
 			WFIFOW(fd, info->pos[1]) = pos;
-			if (sd->packet_ver < date2version(20100629))
-				WFIFOW(fd, info->pos[2]) = (flag == ITEM_EQUIP_ACK_OK ? 1 : 0);
-			else {
-				WFIFOL(fd, info->pos[2]) = look;
-				WFIFOW(fd, info->pos[3]) = (flag == ITEM_EQUIP_ACK_OK ? 1 : 0);
-			}
+#if PACKETVER < 20100629
+			WFIFOB(fd,6) = (flag == ITEM_EQUIP_ACK_OK ? 1 : 0);
+			WFIFOSET(fd,7);
+#else
+			WFIFOW(fd,6) = look;
+			WFIFOB(fd,8) = (flag == ITEM_EQUIP_ACK_OK ? 1 : 0);
+			WFIFOSET(fd,9);
+#endif
 			break;
 		case 0x8d0:
 			if (flag == ITEM_EQUIP_ACK_FAILLEVEL)
