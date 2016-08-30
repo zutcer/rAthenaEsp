@@ -199,7 +199,7 @@
 			packet_keys(0x17F83A19,0x116944F4,0x1CC541E9);
 		#elif PACKETVER == 20151001 // 2015-10-01bRagexeRE
 			packet_keys(0x45B945B9,0x45B945B9,0x45B945B9);
-		#elif PACKETVER == 20150916 // 2015-11-04aRagexe
+		#elif PACKETVER == 20151104 // 2015-11-04aRagexe
 			packet_keys(0x4C17382A,0x7ED174C9,0x29961E4F);
 		#else
 			#error Unsupported packet version.
