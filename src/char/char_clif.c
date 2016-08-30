@@ -302,11 +302,22 @@ int chclif_parse_pincode_setnew( int fd, struct char_session_data* sd ){
 // Tell client how many pages, kRO sends 17 (Yommy)
 //----------------------------------------
 void chclif_charlist_notify( int fd, struct char_session_data* sd ){
+// This is needed on RE clients from october 2015 onwards
+// If you want to use one replace false by true here
+#if false && PACKETVER >= 20151001
+	WFIFOHEAD(fd, 10);
+	WFIFOW(fd, 0) = 0x9a0;
+	// pages to req / send them all in 1 until mmo_chars_fromsql can split them up
+	WFIFOL(fd, 2) = (sd->char_slots>3)?sd->char_slots/3:1; //int TotalCnt (nb page to load)
+	WFIFOL(fd, 6) = sd->char_slots;
+	WFIFOSET(fd,10);
+#else
 	WFIFOHEAD(fd, 6);
 	WFIFOW(fd, 0) = 0x9a0;
 	// pages to req / send them all in 1 until mmo_chars_fromsql can split them up
 	WFIFOL(fd, 2) = (sd->char_slots>3)?sd->char_slots/3:1; //int TotalCnt (nb page to load)
 	WFIFOSET(fd,6);
+#endif
 }
 
 //----------------------------------------
@@ -406,7 +417,11 @@ void chclif_char_delete2_ack(int fd, uint32 char_id, uint32 result, time_t delet
 	WFIFOW(fd,0) = 0x828;
 	WFIFOL(fd,2) = char_id;
 	WFIFOL(fd,6) = result;
+#if PACKETVER_CHAR_DELETEDATE
 	WFIFOL(fd,10) = TOL(delete_date-time(NULL));
+#else
+	WFIFOL(fd,10) = TOL(delete_date);
+#endif
 	WFIFOSET(fd,14);
 }
 
@@ -512,6 +527,37 @@ int chclif_parse_char_delete2_req(int fd, struct char_session_data* sd) {
 	return 1;
 }
 
+/**
+ * Check char deletion code
+ * @param sd
+ * @param delcode E-mail or birthdate
+ * @param flag Delete flag
+ * @return true:Success, false:Failure
+ **/
+static bool chclif_delchar_check(struct char_session_data *sd, char *delcode, uint8 flag) {
+	// E-Mail check
+	if (flag&CHAR_DEL_EMAIL && (
+			!stricmp(delcode, sd->email) || //email does not match or
+			(
+				!stricmp("a@a.com", sd->email) && //it is default email and
+				!strcmp("", delcode) //user sent an empty email
+			))) {
+			ShowInfo(""CL_RED"Char Deleted"CL_RESET" "CL_GREEN"(E-Mail)"CL_RESET".\n");
+			return true;
+	}
+	// Birthdate (YYMMDD)
+	if (flag&CHAR_DEL_BIRTHDATE && (
+		!strcmp(sd->birthdate+2, delcode) || // +2 to cut off the century
+		(
+			!strcmp("0000-00-00", sd->birthdate) && // it is default birthdate and
+			!strcmp("",delcode) // user sent an empty birthdate
+		))) {
+		ShowInfo(""CL_RED"Char Deleted"CL_RESET" "CL_GREEN"(Birthdate)"CL_RESET".\n");
+		return true;
+	}
+	return false;
+}
+
 // CH: <0829>.W <char id>.L <birth date:YYMMDD>.6B
 int chclif_parse_char_delete2_accept(int fd, struct char_session_data* sd) {
 	FIFOSD_CHECK(12)
@@ -561,8 +607,7 @@ int chclif_parse_char_delete2_accept(int fd, struct char_session_data* sd) {
 			return 1;
 		}
 
-		if( strcmp(sd->birthdate+2, birthdate) )  // +2 to cut off the century
-		{// birth date is wrong
+		if (!chclif_delchar_check(sd, birthdate, CHAR_DEL_BIRTHDATE)) { // Only check for birthdate
 			chclif_char_delete2_accept_ack(fd, char_id, 5);
 			return 1;
 		}
@@ -887,22 +932,27 @@ int chclif_parse_charselect(int fd, struct char_session_data* sd,uint32 ipl){
 
 // S 0970 <name>.24B <slot>.B <hair color>.W <hair style>.W
 // S 0067 <name>.24B <str>.B <agi>.B <vit>.B <int>.B <dex>.B <luk>.B <slot>.B <hair color>.W <hair style>.W
+// S 0a39 <name>.24B <slot>.B <hair color>.W <hair style>.W <starting job ID>.W <Unknown>.(W or 2 B's)??? <sex>.B
 int chclif_parse_createnewchar(int fd, struct char_session_data* sd,int cmd){
 	int i = 0;
 
-	if (cmd == 0x970) FIFOSD_CHECK(31) //>=20120307
+	if (cmd == 0xa39) FIFOSD_CHECK(36) //>=20151001
+	else if (cmd == 0x970) FIFOSD_CHECK(31) //>=20120307
 	else if (cmd == 0x67) FIFOSD_CHECK(37)
 	else return 0;
 
 	if( (charserv_config.char_new)==0 ) //turn character creation on/off [Kevin]
 		i = -2;
 	else {
-#if PACKETVER < 20120307
-			i = char_make_new_char_sql(sd, (char*)RFIFOP(fd,2),RFIFOB(fd,26),RFIFOB(fd,27),RFIFOB(fd,28),RFIFOB(fd,29),RFIFOB(fd,30),RFIFOB(fd,31),RFIFOB(fd,32),RFIFOW(fd,33),RFIFOW(fd,35));
-			RFIFOSKIP(fd,37);
-#else
+#if PACKETVER >= 20151001
+			i = char_make_new_char_sql(sd, (char*)RFIFOP(fd,2),RFIFOB(fd,26),RFIFOW(fd,27),RFIFOW(fd,29),RFIFOW(fd,31),RFIFOW(fd,32),RFIFOB(fd,35));
+			RFIFOSKIP(fd,36);
+#elif PACKETVER >= 20120307
 			i = char_make_new_char_sql(sd, (char*)RFIFOP(fd,2),RFIFOB(fd,26),RFIFOW(fd,27),RFIFOW(fd,29));
 			RFIFOSKIP(fd,31);
+#else
+			i = char_make_new_char_sql(sd, (char*)RFIFOP(fd,2),RFIFOB(fd,26),RFIFOB(fd,27),RFIFOB(fd,28),RFIFOB(fd,29),RFIFOB(fd,30),RFIFOB(fd,31),RFIFOB(fd,32),RFIFOW(fd,33),RFIFOW(fd,35));
+			RFIFOSKIP(fd,37);
 #endif
 	}
 
@@ -967,12 +1017,7 @@ int chclif_parse_delchar(int fd,struct char_session_data* sd, int cmd){
 		memcpy(email, RFIFOP(fd,6), 40);
 		RFIFOSKIP(fd,( cmd == 0x68) ? 46 : 56);
 
-		// Check if e-mail is correct
-		if(strcmpi(email, sd->email) && //email does not matches and
-			(strcmp("a@a.com", sd->email) || //it is not default email, or
-			(strcmp("a@a.com", email) && strcmp("", email)) //email sent does not matches default
-			))
-		{	//Fail
+		if (!chclif_delchar_check(sd, email, charserv_config.char_config.char_del_option)) {
 			chclif_refuse_delchar(fd,0); // 00 = Incorrect Email address
 			return 1;
 		}
@@ -1212,7 +1257,8 @@ int chclif_parse(int fd) {
 			// char select
 			case 0x66: next=chclif_parse_charselect(fd,sd,ipl); break;
 			// createnewchar
-			case 0x970: next=chclif_parse_createnewchar(fd,sd,cmd); break;
+			case 0xa39:
+			case 0x970:
 			case 0x67: next=chclif_parse_createnewchar(fd,sd,cmd); break;
 			// delete char
 			case 0x68: next=chclif_parse_delchar(fd,sd,cmd); break; //

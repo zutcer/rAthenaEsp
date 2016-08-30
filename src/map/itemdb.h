@@ -43,6 +43,7 @@ enum item_itemid
 	ITEMID_WHITE_POTION					= 504,
 	ITEMID_BLUE_POTION					= 505,
 	ITEMID_APPLE						= 512,
+	ITEMID_CARROT						= 515,
 	ITEMID_HOLY_WATER					= 523,
 	ITEMID_PUMPKIN						= 535,
 	ITEMID_RED_SLIM_POTION				= 545,
@@ -52,12 +53,14 @@ enum item_itemid
 	ITEMID_WING_OF_BUTTERFLY			= 602,
 	ITEMID_ANODYNE						= 605,
 	ITEMID_ALOEBERA						= 606,
+	ITEMID_MAGNIFIER					= 611,
 	ITEMID_POISON_BOTTLE				= 678,
 	ITEMID_EMPTY_BOTTLE					= 713,
 	ITEMID_EMPERIUM						= 714,
 	ITEMID_YELLOW_GEMSTONE				= 715,
 	ITEMID_RED_GEMSTONE					= 716,
 	ITEMID_BLUE_GEMSTONE				= 717,
+	ITEMID_ORIDECON_STONE				= 756,
 	ITEMID_ALCOHOL						= 970,
 	ITEMID_ORIDECON						= 984,
 	ITEMID_ANVIL						= 986,
@@ -75,10 +78,12 @@ enum item_itemid
 	ITEMID_IRON							= 998,
 	ITEMID_STEEL						= 999,
 	ITEMID_STAR_CRUMB					= 1000,
+	ITEMID_IRON_ORE						= 1002,
 	ITEMID_PHRACON						= 1010,
 	ITEMID_EMVERETARCON					= 1011,
 	ITEMID_TRAP							= 1065,
 	ITEMID_PAINT_BRUSH					= 6122,
+	ITEMID_MAGIC_GEAR_FUEL				= 6146,
 	ITEMID_STRANGE_EMBRYO				= 6415,
 	ITEMID_STONE						= 7049,
 	ITEMID_FIRE_BOTTLE					= 7135,
@@ -90,6 +95,7 @@ enum item_itemid
 	ITEMID_SKULL_						= 7420,
 	ITEMID_TOKEN_OF_SIEGFRIED			= 7621,
 	ITEMID_TRAP_ALLOY					= 7940,
+	ITEMID_CATNIP_FRUIT					= 11602,
 	ITEMID_MERCENARY_RED_POTION			= 12184,
 	ITEMID_MERCENARY_BLUE_POTION		= 12185,
 	ITEMID_BATTLE_MANUAL				= 12208,
@@ -100,16 +106,8 @@ enum item_itemid
 	ITEMID_M_AWAKENING_POTION			= 12242,
 	ITEMID_M_BERSERK_POTION				= 12243,
 	ITEMID_COMP_BATTLE_MANUAL			= 12263,
-	ITEMID_LOVE_ANGEL					= 12287,
-	ITEMID_SQUIRREL						= 12288,
-	ITEMID_GOGO							= 12289,
-	ITEMID_PICTURE_DIARY				= 12304,
-	ITEMID_MINI_HEART					= 12305,
-	ITEMID_NEWCOMER						= 12306,
-	ITEMID_KID							= 12307,
-	ITEMID_MAGIC_CASTLE					= 12308,
-	ITEMID_BULGING_HEAD					= 12309,
 	ITEMID_THICK_BATTLE_MANUAL			= 12312,
+	ITEMID_NOVICE_MAGNIFIER             = 12325,
 	ITEMID_ANCILLA						= 12333,
 	ITEMID_DUN_TELE_SCROLL3				= 12352,
 	ITEMID_REINS_OF_MOUNT				= 12622,
@@ -414,7 +412,7 @@ struct item_data
 	int delay;
 //Lupus: I rearranged order of these fields due to compatibility with ITEMINFO script command
 //		some script commands should be revised as well...
-	unsigned int class_base[3];	//Specifies if the base can wear this item (split in 3 indexes per type: 1-1, 2-1, 2-2)
+	uint64 class_base[3];	//Specifies if the base can wear this item (split in 3 indexes per type: 1-1, 2-1, 2-2)
 	unsigned class_upper : 6; //Specifies if the class-type can equip it (0x01: normal, 0x02: trans, 0x04: baby, 0x08:third, 0x10:trans-third, 0x20-third-baby)
 	struct {
 		int chance;
@@ -453,6 +451,13 @@ struct item_data
 	struct item_combo **combos;
 	unsigned char combos_count;
 	short delay_sc; ///< Use delay group if any instead using player's item_delay data [Cydh]
+};
+
+// Struct for item random option [Secret]
+struct s_random_opt_data
+{
+	unsigned short id;
+	struct script_code *script;
 };
 
 struct item_data* itemdb_searchname(const char *name);
@@ -529,6 +534,8 @@ char itemdb_pc_get_itemgroup(uint16 group_id, struct map_session_data *sd);
 uint16 itemdb_get_randgroupitem_count(uint16 group_id, uint8 sub_group, unsigned short nameid);
 
 bool itemdb_parse_roulette_db(void);
+
+struct s_random_opt_data *itemdb_randomopt_exists(short id);
 
 void itemdb_reload(void);
 

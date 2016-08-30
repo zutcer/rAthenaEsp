@@ -71,6 +71,25 @@ CREATE TABLE IF NOT EXISTS `chatlog` (
 ) ENGINE=MyISAM AUTO_INCREMENT=1;
 
 --
+-- Table structure for table `feedinglog`
+--
+
+CREATE TABLE IF NOT EXISTS `feedinglog` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `time` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `char_id` INT(11) NOT NULL,
+  `target_id` INT(11) NOT NULL,
+  `target_class` SMALLINT(11) NOT NULL,
+  `type` ENUM('P','H','O') NOT NULL, -- P: Pet, H: Homunculus, O: Other
+  `intimacy` INT(11) UNSIGNED NOT NULL,
+  `item_id` SMALLINT(5) UNSIGNED NOT NULL,
+  `map` VARCHAR(11) NOT NULL,
+  `x` SMALLINT(5) UNSIGNED NOT NULL,
+  `y` SMALLINT(5) UNSIGNED NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE = MyISAM AUTO_INCREMENT = 1;
+
+--
 -- Table structure for table `loginlog`
 --
 
@@ -154,6 +173,21 @@ CREATE TABLE IF NOT EXISTS `picklog` (
   `card1` smallint(5) unsigned NOT NULL default '0',
   `card2` smallint(5) unsigned NOT NULL default '0',
   `card3` smallint(5) unsigned NOT NULL default '0',
+  `option_id0` smallint(5) unsigned NOT NULL default '0',
+  `option_val0` smallint(5) unsigned NOT NULL default '0',
+  `option_parm0` tinyint(3) unsigned NOT NULL default '0',
+  `option_id1` smallint(5) unsigned NOT NULL default '0',
+  `option_val1` smallint(5) unsigned NOT NULL default '0',
+  `option_parm1` tinyint(3) unsigned NOT NULL default '0',
+  `option_id2` smallint(5) unsigned NOT NULL default '0',
+  `option_val2` smallint(5) unsigned NOT NULL default '0',
+  `option_parm2` tinyint(3) unsigned NOT NULL default '0',
+  `option_id3` smallint(5) unsigned NOT NULL default '0',
+  `option_val3` smallint(5) unsigned NOT NULL default '0',
+  `option_parm3` tinyint(3) unsigned NOT NULL default '0',
+  `option_id4` smallint(5) unsigned NOT NULL default '0',
+  `option_val4` smallint(5) unsigned NOT NULL default '0',
+  `option_parm4` tinyint(3) unsigned NOT NULL default '0',
   `unique_id` bigint(20) unsigned NOT NULL default '0',
   `map` varchar(11) NOT NULL default '',
   `bound` tinyint(1) unsigned NOT NULL default '0',

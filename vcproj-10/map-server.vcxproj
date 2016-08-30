@@ -196,6 +196,7 @@
     <ClInclude Include="..\src\config\secure.h" />
     <ClInclude Include="..\src\config\classes\general.h" />
     <ClInclude Include="..\src\map\script.h" />
+	<ClInclude Include="..\src\map\script_constants.h" />
     <ClInclude Include="..\src\map\searchstore.h" />
     <ClInclude Include="..\src\map\skill.h" />
     <ClInclude Include="..\src\map\status.h" />
@@ -318,6 +319,7 @@
     <Copy SourceFiles="..\db\import-tmpl\item_nouse.txt" DestinationFolder="..\db\import\" ContinueOnError="true" Condition="!Exists('..\db\import\item_nouse.txt')" />
     <Copy SourceFiles="..\db\import-tmpl\item_stack.txt" DestinationFolder="..\db\import\" ContinueOnError="true" Condition="!Exists('..\db\import\item_stack.txt')" />
     <Copy SourceFiles="..\db\import-tmpl\item_trade.txt" DestinationFolder="..\db\import\" ContinueOnError="true" Condition="!Exists('..\db\import\item_trade.txt')" />
+    <Copy SourceFiles="..\db\import-tmpl\item_randomopt_db.txt" DestinationFolder="..\db\import\" ContinueOnError="true" Condition="!Exists('..\db\import\item_randomopt_db.txt')" />
     <Copy SourceFiles="..\db\import-tmpl\job_basehpsp_db.txt" DestinationFolder="..\db\import\" ContinueOnError="true" Condition="!Exists('..\db\import\job_basehpsp_db.txt')" />
     <Copy SourceFiles="..\db\import-tmpl\job_db1.txt" DestinationFolder="..\db\import\" ContinueOnError="true" Condition="!Exists('..\db\import\job_db1.txt')" />
     <Copy SourceFiles="..\db\import-tmpl\job_db2.txt" DestinationFolder="..\db\import\" ContinueOnError="true" Condition="!Exists('..\db\import\job_db2.txt')" />
@@ -356,5 +358,6 @@
     <Copy SourceFiles="..\db\import-tmpl\skill_unit_db.txt" DestinationFolder="..\db\import\" ContinueOnError="true" Condition="!Exists('..\db\import\skill_unit_db.txt')" />
     <Copy SourceFiles="..\db\import-tmpl\spellbook_db.txt" DestinationFolder="..\db\import\" ContinueOnError="true" Condition="!Exists('..\db\import\spellbook_db.txt')" />
     <Copy SourceFiles="..\db\import-tmpl\statpoint.txt" DestinationFolder="..\db\import\" ContinueOnError="true" Condition="!Exists('..\db\import\statpoint.txt')" />
+    <Copy SourceFiles="..\db\import-tmpl\status_disabled.txt" DestinationFolder="..\db\import\" ContinueOnError="true" Condition="!Exists('..\db\import\status_disabled.txt')" />
   </Target>
 </Project>

@@ -515,7 +515,7 @@ int hom_levelup(struct homun_data *hd)
 	APPLY_HOMUN_LEVEL_STATWEIGHT();
 
 	// Needed to update skill list for mutated homunculus so unlocked skills will appear when the needed level is reached.
-	status_calc_homunculus(hd,0);
+	status_calc_homunculus(hd,SCO_NONE);
 	clif_hominfo(hd->master,hd,0);
 	clif_homskillinfoblock(hd->master);
 
@@ -844,6 +844,8 @@ int hom_food(struct map_session_data *sd, struct homun_data *hd)
 	hd->homunculus.hunger += 10;	//dunno increase value for each food
 	if(hd->homunculus.hunger > 100)
 		hd->homunculus.hunger = 100;
+
+	log_feeding(sd, LOG_FEED_HOMUNCULUS, foodID);
 
 	clif_emotion(&hd->bl,emotion);
 	clif_send_homdata(sd,SP_HUNGRY,hd->homunculus.hunger);

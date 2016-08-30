@@ -28,6 +28,9 @@
 // Check if the specified packetversion supports the pincode system
 #define PACKETVER_SUPPORTS_PINCODE PACKETVER>=20110309
 
+/// Check if the client needs delete_date as remaining time and not the actual delete_date (actually it was tested for clients since 2013)
+#define PACKETVER_CHAR_DELETEDATE (PACKETVER > 20130000 && PACKETVER < 20141016) || PACKETVER >= 20150826
+
 ///Remove/Comment this line to disable sc_data saving. [Skotlex]
 #define ENABLE_SC_SAVING
 /** Remove/Comment this line to disable server-side hot-key saving support [Skotlex]
@@ -75,6 +78,7 @@
 #define MAX_QUEST_OBJECTIVES 3 ///Max quest objectives for a quest
 #define MAX_QUEST_DROPS 3 ///Max quest drops for a quest
 #define MAX_PC_BONUS_SCRIPT 50 ///Max bonus script can be fetched from `bonus_script` table on player load [Cydh]
+#define MAX_ITEM_RDM_OPT 5	 /// Max item random option [Napster]
 
 // for produce
 #define MIN_ATTRIBUTE 0
@@ -183,6 +187,11 @@ struct item {
 	char refine;
 	char attribute;
 	unsigned short card[MAX_SLOTS];
+	struct {
+		short id;
+		short value;
+		char param;
+	} option[MAX_ITEM_RDM_OPT];		// max of 5 random options can be supported.
 	unsigned int expire_time;
 	char favorite, bound;
 	uint64 unique_id;
@@ -212,11 +221,20 @@ enum equip_pos {
 	EQP_SHADOW_SHOES     = 0x080000, // 524288
 	EQP_SHADOW_ACC_R     = 0x100000, // 1048576
 	EQP_SHADOW_ACC_L     = 0x200000, // 2097152
+
+	// Combined
+	EQP_ACC_RL			= EQP_ACC_R|EQP_ACC_L,
+	EQP_SHADOW_ACC_RL	= EQP_SHADOW_ACC_R|EQP_SHADOW_ACC_L,
 };
 
 struct point {
 	unsigned short map;
 	short x,y;
+};
+
+struct startitem {
+	unsigned short nameid, amount;
+	short pos;
 };
 
 enum e_skill_flag
@@ -390,7 +408,7 @@ struct mmo_charstatus {
 	unsigned int option;
 	short manner; // Defines how many minutes a char will be muted, each negative point is equivalent to a minute.
 	unsigned char karma;
-	short hair,hair_color,clothes_color;
+	short hair,hair_color,clothes_color,body;
 	int party_id,guild_id,pet_id,hom_id,mer_id,ele_id;
 	int fame;
 
@@ -558,6 +576,7 @@ struct guild {
 	struct guild_expulsion expulsion[MAX_GUILDEXPULSION];
 	struct guild_skill skill[MAX_GUILDSKILL];
 	struct Channel *channel;
+	unsigned short instance_id;
 
 	/* Used by char-server to save events for guilds */
 	unsigned short save_flag;
@@ -787,6 +806,8 @@ enum e_job {
 
 	JOB_REBELLION = 4215,
 
+	JOB_SUMMONER = 4218,
+
 	JOB_MAX,
 };
 
@@ -822,6 +843,11 @@ enum e_pc_reg_loading {
 #error MAX_ZENY is too big
 #endif
 
+// This sanity check is required, because some other places(like skill.c) rely on this
+#if MAX_PARTY < 2
+#error MAX_PARTY is too small, you need at least 2 players for a party
+#endif
+
 #ifndef VIP_ENABLE
 	#define MIN_STORAGE MAX_STORAGE // If the VIP system is disabled the min = max.
 	#define MIN_CHARS MAX_CHARS // Default number of characters per account.
@@ -849,7 +875,11 @@ enum e_pc_reg_loading {
 	#ifndef ENABLE_SC_SAVING
 	#warning "Cart won't be able to be saved for relog"
 	#endif
+#if PACKETVER >= 20150826
+	#define MAX_CARTS 12		// used for 3 new cart design
+#else
 	#define MAX_CARTS 9
+#endif
 #else
 	#define MAX_CARTS 5
 #endif
