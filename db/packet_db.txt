@@ -2499,7 +2499,6 @@ packet_ver: 52
 
 //2015-09-16Ragexe
 packet_ver: 53
-packet_keys: 0x17F83A19,0x116944F4,0x1CC541E9 // [Napster]
 0x0869,7,actionrequest,2:6
 0x093E,10,useskilltoid,2:4:6
 0x0877,5,walktoxy,2
@@ -2536,7 +2535,6 @@ packet_keys: 0x17F83A19,0x116944F4,0x1CC541E9 // [Napster]
 
 //2015-10-01bRagexeRE
 packet_ver: 54
-packet_keys: 0x45B945B9,0x45B945B9,0x45B945B9	// [Dastgir]
 0x0369,7,actionrequest,2:6
 0x083c,10,useskilltoid,2:4:6
 0x0437,5,walktoxy,2
@@ -2569,7 +2567,6 @@ packet_keys: 0x45B945B9,0x45B945B9,0x45B945B9	// [Dastgir]
 
 //2015-11-04aRagexe
 packet_ver: 55
-packet_keys: 0x4C17382A,0x7ED174C9,0x29961E4F // [Winnie]
 0x0369,7,actionrequest,2:6
 0x083C,10,useskilltoid,2:4:6
 0x0363,5,walktoxy,2
