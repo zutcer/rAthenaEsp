@@ -51,6 +51,7 @@ unsigned int current_equip_combo_pos; /// For combo items we need to save the po
 int current_equip_card_id; /// To prevent card-stacking (from jA) [Skotlex]
 bool running_npc_stat_calc_event; /// Indicate if OnPCStatCalcEvent is running.
 // We need it for new cards 15 Feb 2005, to check if the combo cards are insrerted into the CURRENT weapon only to avoid cards exploits
+short current_equip_opt_index; /// Contains random option index of an equipped item. [Secret]
 
 /// Struct of SC configs [Cydh]
 struct s_status_change_db {
@@ -2092,6 +2093,8 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 		+ sizeof(sd->ignore_mdef_by_class)
 		+ sizeof(sd->ignore_def_by_race)
 		+ sizeof(sd->sp_gain_race)
+		+ sizeof(sd->dropaddrace)
+		+ sizeof(sd->dropaddclass)
 		);
 
 	memset (&sd->right_weapon.overrefine, 0, sizeof(sd->right_weapon) - sizeof(sd->right_weapon.atkmods));
@@ -2225,11 +2228,11 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 				wa->atk2 = refine_info[wlv].bonus[r-1] / 100;
 #ifdef RENEWAL
 			wa->matk += sd->inventory_data[index]->matk;
-			if (sd->bonus.weapon_matk_rate)
-				wa->matk += sd->inventory_data[index]->matk * sd->bonus.weapon_matk_rate / 100;
 			wa->wlv = wlv;
 			if(r && sd->weapontype1 != W_BOW) // Renewal magic attack refine bonus
 				wa->matk += refine_info[wlv].bonus[r-1] / 100;
+			if (sd->bonus.weapon_matk_rate)
+				wa->matk += wa->matk * sd->bonus.weapon_matk_rate / 100;
 #endif
 			if(r) // Overrefine bonus.
 				wd->overrefine = refine_info[wlv].randombonus_max[r-1] / 100;
@@ -2372,10 +2375,51 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	}
 	current_equip_card_id = 0; // Clear stored card ID [Secret]
 
-	if( sc->count && sc->data[SC_ITEMSCRIPT] ) {
+	// Parse random options
+	for (i = 0; i < EQI_MAX; i++) {
+		current_equip_item_index = index = sd->equip_index[i];
+		current_equip_combo_pos = 0;
+		current_equip_opt_index = -1;
+
+		if (index < 0)
+			continue;
+		if (i == EQI_AMMO)
+			continue;
+		if (pc_is_same_equip_index((enum equip_index)i, sd->equip_index, index))
+			continue;
+		
+		if (sd->inventory_data[index]) {
+			int j;
+			struct s_random_opt_data *data;
+			for (j = 0; j < MAX_ITEM_RDM_OPT; j++) {
+				short opt_id = sd->status.inventory[index].option[j].id;
+
+				if (!opt_id)
+					continue;
+				current_equip_opt_index = j;
+				data = itemdb_randomopt_exists(opt_id);
+				if (!data || !data->script)
+					continue;
+				if (!pc_has_permission(sd, PC_PERM_USE_ALL_EQUIPMENT) && itemdb_isNoEquip(sd->inventory_data[index], sd->bl.m))
+					continue;
+				if (i == EQI_HAND_L && sd->status.inventory[index].equip == EQP_HAND_L) { // Left hand status.
+					sd->state.lr_flag = 1;
+					run_script(data->script, 0, sd->bl.id, 0);
+					sd->state.lr_flag = 0;
+				}
+				else
+					run_script(data->script, 0, sd->bl.id, 0);
+				if (!calculating)
+					return 1;
+			}
+		}
+		current_equip_opt_index = -1;
+	}
+
+	if (sc->count && sc->data[SC_ITEMSCRIPT]) {
 		struct item_data *data = itemdb_exists(sc->data[SC_ITEMSCRIPT]->val1);
-		if( data && data->script )
-			run_script(data->script,0,sd->bl.id,0);
+		if (data && data->script)
+			run_script(data->script, 0, sd->bl.id, 0);
 	}
 
 	pc_bonus_script(sd);
@@ -5308,8 +5352,8 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				val = max( val, 50 );
 			if( sc->data[SC_MARSHOFABYSS] )
 				val = max( val, sc->data[SC_MARSHOFABYSS]->val3 );
-			if( sc->data[SC_CAMOUFLAGE] && (sc->data[SC_CAMOUFLAGE]->val3&1) == 0 )
-				val = max( val, sc->data[SC_CAMOUFLAGE]->val1 < 3 ? 0 : 25 * (5 - sc->data[SC_CAMOUFLAGE]->val1) );
+			if( sc->data[SC_CAMOUFLAGE] && sc->data[SC_CAMOUFLAGE]->val1 > 2 )
+				val = max( val, 25 * (5 - sc->data[SC_CAMOUFLAGE]->val1) );
 			if( sc->data[SC_STEALTHFIELD] )
 				val = max( val, 20 );
 			if( sc->data[SC__LAZINESS] )
@@ -6637,6 +6681,16 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 		case SC_OBLIVIONCURSE: // 100% - (100 - 0.8 x INT)
 			sc_def = status->int_*80;
 			sc_def = max(sc_def, 500); // minimum of 5% resist
+			tick_def = 0;
+			//Fall through
+		case SC_TOXIN:
+		case SC_PARALYSE:
+		case SC_VENOMBLEED:
+		case SC_MAGICMUSHROOM:
+		case SC_DEATHHURT:
+		case SC_PYREXIA:
+		case SC_LEECHESEND:
+			tick_def2 = (status->vit + status->luk) * 500;
 			break;
 		case SC_BITE: // {(Base Success chance) - (Target's AGI / 4)}
 			sc_def2 = status->agi*25;
@@ -6759,6 +6813,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			break;
 		case SC_BURNING:
 		case SC_STASIS:
+		case SC_VOICEOFSIREN:
 			tick = max(tick, 10000); // Minimum duration 10s
 			break;
 		default:
@@ -7148,6 +7203,8 @@ int status_change_start(struct block_list* src, struct block_list* bl,enum sc_ty
 				if (sc->data[SC_STONE] && sc->opt1 == OPT1_STONE)
 					status_change_end(bl, SC_STONE, INVALID_TIMER);
 			}
+			if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH)
+				status_change_end(bl, SC_SPIRIT, INVALID_TIMER);
 			break;
 		case SC_INCREASEAGI:
 			if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH)
@@ -8972,6 +9029,7 @@ int status_change_start(struct block_list* src, struct block_list* bl,enum sc_ty
 		case SC_JEXPBOOST:
 		case SC_ITEMBOOST:
 		case SC_JP_EVENT04:
+		case SC_PUSH_CART:
 			val_flag |= 1;
 			break;
 		// Start |1|2 val_flag setting
@@ -9250,6 +9308,18 @@ int status_change_start(struct block_list* src, struct block_list* bl,enum sc_ty
 		case SC_ITEMSCRIPT: // Shows Buff Icons
 			if (sd && val2 != SI_BLANK)
 				clif_status_change(bl, (enum si_type)val2, 1, tick, 0, 0, 0);
+			break;
+		case SC_GVG_GIANT:
+		case SC_GVG_GOLEM:
+		case SC_GVG_STUN:
+		case SC_GVG_STONE:
+		case SC_GVG_FREEZ:
+		case SC_GVG_SLEEP:
+		case SC_GVG_CURSE:
+		case SC_GVG_SILENCE:
+		case SC_GVG_BLIND:
+			if (val1 || val2)
+				status_zap(bl, val1 ? val1 : 0, val2 ? val2 : 0);
 			break;
 	}
 
@@ -10172,7 +10242,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 	case SC_LEECHESEND:
 		if (sce->val4 >= 0) {
-			int64 damage = status->vit * (sce->val1 - 3) + status->max_hp / 100; // {Target VIT x (New Poison Research Skill Level - 3)} + (Target HP/100)
+			int64 damage = status->vit * (sce->val1 - 3) + (int)status->max_hp / 100; // {Target VIT x (New Poison Research Skill Level - 3)} + (Target HP/100)
 			map_freeblock_lock();
 			dounlock = true;
 			status_fix_damage(bl, bl, damage, clif_damage(bl, bl, tick, status->amotion, status->dmotion + 500, damage, 1, DMG_NORMAL, 0, false));
@@ -10470,9 +10540,13 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 	case SC_CLOUD_KILL: {
 			struct block_list *src = map_id2bl(sce->val2), *unit_bl = map_id2bl(sce->val3);
 
-			if (src && unit_bl)
+			if (src && unit_bl){
+				map_freeblock_lock();
+				dounlock = true;
 				skill_attack(skill_get_type(status_sc_get_skill(type)), src, unit_bl, bl, SO_CLOUD_KILL, sce->val1, tick, 0);
-			sc_timer_next(500 + tick, status_change_timer, bl->id, data);
+				if (!status_isdead(bl))
+					sc_timer_next(500 + tick, status_change_timer, bl->id, data);
+			}
 		}
 		break;
 
@@ -10979,8 +11053,8 @@ void status_change_clear_buffs(struct block_list* bl, uint8 type)
 	}
 	
 	//Removes bonus_script by Refresh or Luxanima
-	if (bl->type == BL_PC && type&(4|8))
-		pc_bonus_script_clear(BL_CAST(BL_PC,bl),((type&4) ? BSF_REM_ON_REFRESH : 0)|((type&8) ? BSF_REM_ON_LUXANIMA : 0));
+	if (bl->type == BL_PC && type&(SCCB_REFRESH|SCCB_LUXANIMA))
+		pc_bonus_script_clear(BL_CAST(BL_PC,bl),((type&SCCB_REFRESH) ? BSF_REM_ON_REFRESH : 0)|((type&SCCB_LUXANIMA) ? BSF_REM_ON_LUXANIMA : 0));
 
 	//Removes bonus_script
 	if (bl->type == BL_PC) {
