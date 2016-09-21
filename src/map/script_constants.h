@@ -2369,6 +2369,8 @@
 	export_constant(SI_MTF_MARIONETTE);
 	export_constant(SI_MTF_LUDE);
 	export_constant(SI_MTF_CRUISER);
+	export_constant(SI_MERMAID_LONGING);
+	export_constant(SI_MAGICAL_FEATHER);
 	export_constant(SI_DRACULA_CARD);
 	export_constant(SI_LIMIT_POWER_BOOSTER);
 	export_constant(SI_TIME_ACCESSORY);
@@ -2579,6 +2581,10 @@
 	export_constant(SCF_REM_ON_CHANGEMAP);
 	export_constant(SCF_REM_ON_MAPWARP);
 	export_constant(SCF_REM_CHEM_PROTECT);
+	export_constant(SCF_OVERLAP_FAIL);
+	export_constant(SCF_OPT_CHANGEOPTION);
+	export_constant(SCF_OPT_CHANGELOOK);
+	export_constant(SCF_TRIGGER_ONTOUCH_);
 
 	/* elements */
 	export_constant(ELE_NEUTRAL);
