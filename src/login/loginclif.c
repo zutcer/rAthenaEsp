@@ -53,6 +53,16 @@ static void logclif_auth_ok(struct login_session_data* sd) {
 	struct auth_node* node;
 	int i;
 
+#if PACKETVER < 20170315
+	int cmd = 0x69; // AC_ACCEPT_LOGIN
+	int header = 47;
+	int size = 32;
+#else
+	int cmd = 0xac4; // AC_ACCEPT_LOGIN3
+	int header = 64;
+	int size = 160;
+#endif
+
 	if( runflag != LOGINSERVER_ST_RUNNING ){
 		// players can only login while running
 		logclif_sent_auth_result(fd,1); // server closed
@@ -111,9 +121,9 @@ static void logclif_auth_ok(struct login_session_data* sd) {
 	login_log(ip, sd->userid, 100, "login ok");
 	ShowStatus("Connection of the account '%s' accepted.\n", sd->userid);
 
-	WFIFOHEAD(fd,47+32*server_num);
-	WFIFOW(fd,0) = 0x69;
-	WFIFOW(fd,2) = 47+32*server_num;
+	WFIFOHEAD(fd,header+size*server_num);
+	WFIFOW(fd,0) = cmd;
+	WFIFOW(fd,2) = header+size*server_num;
 	WFIFOL(fd,4) = sd->login_id1;
 	WFIFOL(fd,8) = sd->account_id;
 	WFIFOL(fd,12) = sd->login_id2;
@@ -122,19 +132,25 @@ static void logclif_auth_ok(struct login_session_data* sd) {
 	memset(WFIFOP(fd,20), 0, 24);
 	WFIFOW(fd,44) = 0; // unknown
 	WFIFOB(fd,46) = sex_str2num(sd->sex);
+#if PACKETVER >= 20170315
+	memset(WFIFOP(fd,47),0,17); // Unknown
+#endif
 	for( i = 0, n = 0; i < ARRAYLENGTH(ch_server); ++i ) {
 		if( !session_isValid(ch_server[i].fd) )
 			continue;
 		subnet_char_ip = lan_subnetcheck(ip); // Advanced subnet check [LuzZza]
-		WFIFOL(fd,47+n*32) = htonl((subnet_char_ip) ? subnet_char_ip : ch_server[i].ip);
-		WFIFOW(fd,47+n*32+4) = ntows(htons(ch_server[i].port)); // [!] LE byte order here [!]
-		memcpy(WFIFOP(fd,47+n*32+6), ch_server[i].name, 20);
-		WFIFOW(fd,47+n*32+26) = ch_server[i].users;
-		WFIFOW(fd,47+n*32+28) = ch_server[i].type;
-		WFIFOW(fd,47+n*32+30) = ch_server[i].new_;
+		WFIFOL(fd,header+n*size) = htonl((subnet_char_ip) ? subnet_char_ip : ch_server[i].ip);
+		WFIFOW(fd,header+n*size+4) = ntows(htons(ch_server[i].port)); // [!] LE byte order here [!]
+		memcpy(WFIFOP(fd,header+n*size+6), ch_server[i].name, 20);
+		WFIFOW(fd,header+n*size+26) = ch_server[i].users;
+		WFIFOW(fd,header+n*size+28) = ch_server[i].type;
+		WFIFOW(fd,header+n*size+30) = ch_server[i].new_;
+#if PACKETVER >= 20170315
+		memset(WFIFOP(fd, header+n*size+32), 0, 128); // Unknown
+#endif
 		n++;
 	}
-	WFIFOSET(fd,47+32*server_num);
+	WFIFOSET(fd,header+size*server_num);
 
 	// create temporary auth entry
 	CREATE(node, struct auth_node, 1);
@@ -211,7 +227,7 @@ static void logclif_auth_failed(struct login_session_data* sd, int result) {
 			struct mmo_account acc;
 			AccountDB* accounts = login_get_accounts_db();
 			time_t unban_time = ( accounts->load_str(accounts, &acc, sd->userid) ) ? acc.unban_time : 0;
-			timestamp2string((char*)WFIFOP(fd,6), 20, unban_time, login_config.date_format);
+			timestamp2string(WFIFOCP(fd,6), 20, unban_time, login_config.date_format);
 		}
 		WFIFOSET(fd,26);
 	}
@@ -226,7 +242,7 @@ static void logclif_auth_failed(struct login_session_data* sd, int result) {
 			struct mmo_account acc;
 			AccountDB* accounts = login_get_accounts_db();
 			time_t unban_time = ( accounts->load_str(accounts, &acc, sd->userid) ) ? acc.unban_time : 0;
-			timestamp2string((char*)WFIFOP(fd,3), 20, unban_time, login_config.date_format);
+			timestamp2string(WFIFOCP(fd,3), 20, unban_time, login_config.date_format);
 		}
 		WFIFOSET(fd,23);
 	}
@@ -299,8 +315,8 @@ static int logclif_parse_reqauth(int fd, struct login_session_data *sd, int comm
 
 		// Shinryo: For the time being, just use token as password.
 		if(command == 0x0825) {
-			char *accname = (char *)RFIFOP(fd, 9);
-			char *token = (char *)RFIFOP(fd, 0x5C);
+			char *accname = RFIFOCP(fd, 9);
+			char *token = RFIFOCP(fd, 0x5C);
 			size_t uAccLen = strlen(accname);
 			size_t uTokenLen = RFIFOREST(fd) - 0x5C;
 
@@ -319,10 +335,10 @@ static int logclif_parse_reqauth(int fd, struct login_session_data *sd, int comm
 		else
 		{
 			version = RFIFOL(fd,2);
-			safestrncpy(username, (const char*)RFIFOP(fd,6), NAME_LENGTH);
+			safestrncpy(username, RFIFOCP(fd,6), NAME_LENGTH);
 			if( israwpass )
 			{
-				safestrncpy(password, (const char*)RFIFOP(fd,30), PASSWD_LENGTH);
+				safestrncpy(password, RFIFOCP(fd,30), PASSWD_LENGTH);
 				clienttype = RFIFOB(fd,54);
 			}
 			else
@@ -409,20 +425,20 @@ static int logclif_parse_reqcharconnec(int fd, struct login_session_data *sd, ch
 		uint16 type;
 		uint16 new_;
 
-		safestrncpy(sd->userid, (char*)RFIFOP(fd,2), NAME_LENGTH);
-		safestrncpy(sd->passwd, (char*)RFIFOP(fd,26), NAME_LENGTH);
+		safestrncpy(sd->userid, RFIFOCP(fd,2), NAME_LENGTH);
+		safestrncpy(sd->passwd, RFIFOCP(fd,26), NAME_LENGTH);
 		if( login_config.use_md5_passwds )
 			MD5_String(sd->passwd, sd->passwd);
 		sd->passwdenc = 0;
 		sd->version = login_config.client_version_to_connect; // hack to skip version check
 		server_ip = ntohl(RFIFOL(fd,54));
 		server_port = ntohs(RFIFOW(fd,58));
-		safestrncpy(server_name, (char*)RFIFOP(fd,60), 20);
+		safestrncpy(server_name, RFIFOCP(fd,60), 20);
 		type = RFIFOW(fd,82);
 		new_ = RFIFOW(fd,84);
 		RFIFOSKIP(fd,86);
 
-		ShowInfo("Connection request of the char-server '%s' @ %u.%u.%u.%u:%u (account: '%s', pass: '%s', ip: '%s')\n", server_name, CONVIP(server_ip), server_port, sd->userid, sd->passwd, ip);
+		ShowInfo("Connection request of the char-server '%s' @ %u.%u.%u.%u:%u (account: '%s', ip: '%s')\n", server_name, CONVIP(server_ip), server_port, sd->userid, ip);
 		sprintf(message, "charserver - %s@%u.%u.%u.%u:%u", server_name, CONVIP(server_ip), server_port);
 		login_log(session[fd]->client_addr, sd->userid, 100, message);
 
