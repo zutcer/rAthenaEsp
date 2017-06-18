@@ -16833,7 +16833,7 @@ int skill_frostjoke_scream(struct block_list *bl, va_list ap)
 		return 0;
 	if (bl->type == BL_PC) {
 		struct map_session_data *sd = (struct map_session_data *)bl;
-		if ( sd && sd->sc.option&(OPTION_INVISIBLE|OPTION_MADOGEAR) )
+		if ( sd && (pc_isinvisible(sd) || (sd->sc.option&OPTION_MADOGEAR)) )
 			return 0;//Frost Joke / Scream cannot target invisible or MADO Gear characters [Ind]
 	}
 	//It has been reported that Scream/Joke works the same regardless of woe-setting. [Skotlex]

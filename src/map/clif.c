@@ -1444,7 +1444,7 @@ int clif_spawn(struct block_list *bl)
 	/**
 	* Hide NPC from maya purple card.
 	**/
-	if(bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
+	if(bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && pc_isinvisible((TBL_NPC*)bl))
 		return 0;
 
 	len = clif_set_unit_idle(bl, buf,true);
@@ -1798,7 +1798,7 @@ void clif_move(struct unit_data *ud)
 	/**
 	* Hide NPC from maya purple card.
 	**/
-	if(bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
+	if(bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && pc_isinvisible((TBL_NPC*)bl))
 		return;
 
 	if (ud->state.speed_changed) {
@@ -3595,7 +3595,7 @@ void clif_changelook(struct block_list *bl, int type, int val) {
 	}
 
 	// prevent leaking the presence of GM-hidden objects
-	if( sc && sc->option&OPTION_INVISIBLE )
+	if( sd && pc_isinvisible(sd) )
 		target = SELF;
 
 #if PACKETVER < 4
@@ -4624,7 +4624,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 	/**
 	* Hide NPC from maya purple card.
 	**/
-	if(bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
+	if(bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && pc_isinvisible((TBL_NPC*)bl))
 		return;
 
 	ud = unit_bl2ud(bl);
@@ -5176,7 +5176,7 @@ int clif_outsight(struct block_list *bl,va_list ap)
 			clif_clearchar_skillunit((struct skill_unit *)bl,tsd->fd);
 			break;
 		case BL_NPC:
-			if(!(((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
+			if(!pc_isinvisible((TBL_NPC*)bl))
 				clif_clearunit_single(bl->id,CLR_OUTSIGHT,tsd->fd);
 			break;
 		default:
@@ -5190,7 +5190,7 @@ int clif_outsight(struct block_list *bl,va_list ap)
 		if(tbl->type == BL_SKILL) //Trap knocked out of sight
 			clif_clearchar_skillunit((struct skill_unit *)tbl,sd->fd);
 		else if(((vd=status_get_viewdata(tbl)) && vd->class_ != INVISIBLE_CLASS) &&
-			!(tbl->type == BL_NPC && (((TBL_NPC*)tbl)->sc.option&OPTION_INVISIBLE)))
+			!(tbl->type == BL_NPC && pc_isinvisible((TBL_NPC*)tbl)))
 			clif_clearunit_single(tbl->id,CLR_OUTSIGHT,sd->fd);
 	}
 	return 0;
