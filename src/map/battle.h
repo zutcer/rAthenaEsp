@@ -4,6 +4,10 @@
 #ifndef _BATTLE_H_
 #define _BATTLE_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "../common/mmo.h"
 #include "../config/core.h"
 #include "clif.h" // e_damage_type
@@ -369,8 +373,6 @@ extern struct Battle_Config
 	int day_duration; // added by [Yor]
 	int night_duration; // added by [Yor]
 	int ban_hack_trade; // added by [Yor]
-	int packet_ver_flag; // added by [Yor]
-	int packet_ver_flag2; // expend of packet_ver_flag
 
 	int min_hair_style; // added by [MouseJstr]
 	int max_hair_style; // added by [MouseJstr]
@@ -618,6 +620,15 @@ extern struct Battle_Config
 	int dispel_song; //Can songs be dispelled?
 	int guild_maprespawn_clones; // Should clones be killed by maprespawnguildid?
 	int hide_fav_sell;
+	int mail_daily_count;
+	int mail_zeny_fee;
+	int mail_attachment_price;
+	int mail_attachment_weight;
+	int banana_bomb_duration;
+	int guild_leaderchange_delay;
+	int guild_leaderchange_woe;
+	int guild_alliance_onlygm;
+	int feature_achievement;
 
 #include "../custom/battle_config_struct.inc"
 } battle_config;
@@ -635,5 +646,9 @@ struct block_list* battle_getenemyarea(struct block_list *src, int x, int y, int
  * Royal Guard
  **/
 int battle_damage_area( struct block_list *bl, va_list ap);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BATTLE_H_ */
