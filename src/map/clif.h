@@ -39,17 +39,18 @@ struct sale_item_data;
 enum mail_inbox_type;
 struct mail_message;
 enum mail_attachment_type;
+struct achievement;
 #include <stdarg.h>
 
 enum { // packet DB
 	MIN_PACKET_DB  = 0x064,
 	MAX_PACKET_DB  = 0xAFF,
-	MAX_PACKET_VER = 55,
 	MAX_PACKET_POS = 20,
 };
 
 enum e_packet_ack {
 	ZC_ACK_OPEN_BANKING = 0,
+	ZC_ACK_CLOSE_BANKING,
 	ZC_ACK_BANKING_DEPOSIT,
 	ZC_ACK_BANKING_WITHDRAW,
 	ZC_BANKING_CHECK,
@@ -171,11 +172,17 @@ enum e_party_invite_reply {
 	PARTY_REPLY_INVALID_MAPPROPERTY_ME, ///< return=9 : !TODO "Cannot join a party in this map" -> MsgStringTable[1871] (since 20110205)
 };
 
-// packet_db[SERVER] is reserved for server use
-#define SERVER 0
-#define packet_len(cmd) packet_db[SERVER][cmd].len
-extern struct s_packet_db packet_db[MAX_PACKET_VER+1][MAX_PACKET_DB+1];
-extern int packet_db_ack[MAX_PACKET_VER + 1][MAX_ACK_FUNC + 1];
+/// Enum for Convex Mirror (SC_BOSSMAPINFO)
+enum e_bossmap_info {
+	BOSS_INFO_NOT = 0,
+	BOSS_INFO_ALIVE,
+	BOSS_INFO_ALIVE_WITHMSG,
+	BOSS_INFO_DEAD,
+};
+
+#define packet_len(cmd) packet_db[cmd].len
+extern struct s_packet_db packet_db[MAX_PACKET_DB+1];
+extern int packet_db_ack[MAX_ACK_FUNC + 1];
 
 // local define
 typedef enum send_target {
@@ -449,6 +456,7 @@ enum useskill_fail_cause
 	//XXX_USESKILL_FAIL_II_HELLS_PLANT_BOTTLE = 68,
 	//XXX_USESKILL_FAIL_II_MANDRAGORA_FLOWERPOT = 69,
 	USESKILL_FAIL_MANUAL_NOTIFY = 70,
+	// CAUTION: client uses unidentified display name for displaying the required item. Still broken on 2017-05-31 [Lemongrass]
 	USESKILL_FAIL_NEED_ITEM = 71,
 	USESKILL_FAIL_NEED_EQUIPMENT = 72,
 	USESKILL_FAIL_COMBOSKILL = 73,
@@ -463,6 +471,7 @@ enum useskill_fail_cause
 	USESKILL_FAIL_STYLE_CHANGE_GRAPPLER = 82,
 	USESKILL_FAIL_THERE_ARE_NPC_AROUND = 83,
 	USESKILL_FAIL_NEED_MORE_BULLET = 84,
+	USESKILL_FAIL_COINS = 85,
 
 	USESKILL_FAIL_MAX
 };
@@ -501,6 +510,12 @@ enum clif_messages {
 	MERGE_ITEM_NOT_AVAILABLE = 0x887,
 	GUILD_MASTER_WOE = 0xb93, /// <"Currently in WoE hours, unable to delegate Guild leader"
 	GUILD_MASTER_DELAY = 0xb94, /// <"You have to wait for one day before delegating a new Guild leader"
+	SKILL_NEED_GATLING = 0x9fa,
+	SKILL_NEED_SHOTGUN = 0x9fb,
+	SKILL_NEED_RIFLE = 0x9fc,
+	SKILL_NEED_REVOLVER = 0x9fd,
+	SKILL_NEED_HOLY_BULLET = 0x9fe,
+	SKILL_NEED_GRENADE = 0xa01,
 };
 
 enum e_personalinfo {
@@ -534,7 +549,6 @@ void clif_setport(uint16 port);
 uint32 clif_getip(void);
 uint32 clif_refresh_ip(void);
 uint16 clif_getport(void);
-void packetdb_readdb(bool reload);
 
 void clif_authok(struct map_session_data *sd);
 void clif_authrefuse(int fd, uint8 error_code);
@@ -904,7 +918,7 @@ void clif_Auction_message(int fd, unsigned char flag);
 void clif_Auction_close(int fd, unsigned char flag);
 void clif_parse_Auction_cancelreg(int fd, struct map_session_data *sd);
 
-void clif_bossmapinfo(int fd, struct mob_data *md, short flag);
+void clif_bossmapinfo(struct map_session_data *sd, struct mob_data *md, enum e_bossmap_info flag);
 void clif_cashshop_show(struct map_session_data *sd, struct npc_data *nd);
 
 // ADOPTION
@@ -930,6 +944,8 @@ void clif_party_show_picker(struct map_session_data * sd, struct item * item_dat
 // Progress Bar [Inkfish]
 void clif_progressbar(struct map_session_data * sd, unsigned long color, unsigned int second);
 void clif_progressbar_abort(struct map_session_data * sd);
+void clif_progressbar_npc(struct npc_data *nd, struct map_session_data* sd);
+#define clif_progressbar_npc_area(nd) clif_progressbar_npc((nd),NULL)
 
 void clif_PartyBookingRegisterAck(struct map_session_data *sd, int flag);
 void clif_PartyBookingDeleteAck(struct map_session_data* sd, int flag);
@@ -1027,7 +1043,7 @@ enum clif_colors {
 	COLOR_LIGHT_GREEN,
 	COLOR_MAX
 };
-unsigned long color_table[COLOR_MAX];
+extern unsigned long color_table[COLOR_MAX];
 
 void clif_channel_msg(struct Channel *channel, const char *msg, unsigned long color);
 
@@ -1038,7 +1054,7 @@ void clif_update_rankingpoint(struct map_session_data *sd, int rankingtype, int 
 
 void clif_crimson_marker(struct map_session_data *sd, struct block_list *bl, bool remove);
 
-void clif_showscript(struct block_list* bl, const char* message);
+void clif_showscript(struct block_list* bl, const char* message, enum send_target flag);
 void clif_party_leaderchanged(struct map_session_data *sd, int prev_leader_aid, int new_leader_aid);
 
 void clif_account_name(int fd, uint32 account_id, const char* accname);
@@ -1051,6 +1067,12 @@ void clif_broadcast_obtain_special_item(const char *char_name, unsigned short na
 void clif_dressing_room(struct map_session_data *sd, int flag);
 void clif_navigateTo(struct map_session_data *sd, const char* mapname, uint16 x, uint16 y, uint8 flag, bool hideWindow, uint16 mob_id );
 void clif_SelectCart(struct map_session_data *sd);
+
+/// Achievement System
+void clif_achievement_list_all(struct map_session_data *sd);
+void clif_achievement_update(struct map_session_data *sd, struct achievement *ach, int count);
+void clif_pAchievementCheckReward(int fd, struct map_session_data *sd);
+void clif_achievement_reward_ack(int fd, unsigned char result, int ach_id);
 
 #ifdef __cplusplus
 }
