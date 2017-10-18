@@ -1,7 +1,8 @@
 //===== rAthena Script ======================================= 
 //= The Airship System Script
 //===== By: ================================================== 
-//= rAthena Dev Team
+//= rAthena Dev Team (1.0)
+//= Zutcer (2.0)
 //===== Current Version: =====================================
 //= 1.0
 //===== Compatible With: ===================================== 
@@ -329,20 +330,18 @@ airplane,80,71,2	script	Zerta#01airplane	834,{
 
 airplane,65,63,4	script	Maelin#01airplane	714,{
 	mes "[Maelin]";
-	mes "Um, this Airship is";
-	mes "to Lutie, isn't it? I've";
-	mes "waiting so long,";
-	mes "but I haven't heard any";
-	mes "broadcast about Lutie.";
+	mes "Umm, ¿Esta aeronave va hacia Lutie?, ¿No es asi?";
+	mes "Llevo esperando mucho tiempo";
+	mes "pero no he odido nada";
+	mes "por los anuncios acerca de Lutie.";
 	close;
 }
 
 airplane,72,34,6	script	Aanos#01airplane	702,{
 	mes "[Aanos]";
-	mes "Oh wooow~";
-	mes "The sky looks";
-	mes "so different and";
-	mes "pretty from up there!";
+	mes "Ohh wooow~";
+	mes "Mira el cielo!!";
+	mes "Es tan diferente y lindo desde aqui arriba!";
 	close;
 }
 
