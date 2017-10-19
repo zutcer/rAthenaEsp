@@ -348,32 +348,29 @@ airplane,72,34,6	script	Aanos#01airplane	702,{
 airplane,221,158,2	script	Pilot#airplane	852,{
 	// Hugel quest addition
 	if (hg_ma1 == 3) {
-		mes "[Pilot]";
-		mes "I wish that I could go drink a cold fresh beer.";
-		mes "Drinking is the goal of my life! Drinking gives me energy!";
-		mes "I am nothing without drinks!";
+		mes "[Piloto]";
+		mes "Desearía poder ir a beber una cerveza bien fria.";
+		mes "Beber es el objetivo de mi vida, beber me da energias!";
+		mes "No seria nada si no bebiera!";
 		next;
-		mes "[Pilot]";
-		mes "But! Driving under the influence is not good.";
-		mes "But! That makes me want to drink more and more!";
+		mes "[Piloto]";
+		mes "Pero!!, Conducir bajo la influencia no es bueno.";
+		mes "Pero! eso me hace querer beber más!";
 		emotion e_sob;
 		next;
-		select("Do you know a passenger named Thierry?");
+		select("¿Conoces a un pasajero llamado Thierry?");
 		mes "[Pilot]";
-		mes "This uniform is";
-		mes "really dapper, but";
-		mes "it's way too thick to";
-		mes "wear around the Airship.";
+		mes "Este uniforme es verdaderamente lindo";
+		mes "pero es demasiado grueso para ocupar alrededor de la aeronave";
 		next;
-		mes "[Pilot]";
+		mes "[Piloto]";
 		mes "...";
 		mes "......";
-		mes "No one ever really";
-		mes "comes into this room.";
+		mes "Nunca viene alguien a esta habitación";
 		mes "And the captain IS a reindeer. I could just strip to my boxers.";
 		next;
 		emotion e_omg;
-		mes "[Pilot]";
+		mes "[Piloto]";
 		mes "Wah!? Who is it!";
 		next;
 		mes "- ...He is not listening to you, at all. -";
