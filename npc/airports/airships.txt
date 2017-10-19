@@ -195,7 +195,7 @@ airplane,64,94,1	script	Umbala Kid#ein_p	787,{
 	if (event_umbala >= 3) {
 		mes "Woow!, Mamá!";
 		mes "Mi-Mira esto!!";
-		mes "Estamos volando! Estamo en...";
+		mes "Estamos volando! Estamos en...";
 		mes "Estamos en el cielo!!";
 	}
 	else {
