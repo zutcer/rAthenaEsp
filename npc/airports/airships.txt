@@ -212,8 +212,8 @@ airplane,66,93,3	script	Umbala Lady#ein_p	783,{
 	mes "[Dama]";
 	if (event_umbala >= 3) {
 		mes "Shh..sh...";
-		mes "Cariño, comportate~";
-		mes "No actues tan emocionado";
+		mes "Cariño, compórtate~";
+		mes "No actúes tan emocionado";
 		mes "Cuando estamos en un lugar publico como este!";
 	}
 	else {
@@ -237,7 +237,7 @@ airplane,71,91,7	script	Umbala Man#ein_p	789,{
 		mes "He estado ayudando a la empresa aérea,";
 		mes "haciendo que los tripulantes";
 		mes "entrenen en Umbala para superar";
-		mes "cualquier temor al salto en Bungee. Fantastico, no?";
+		mes "cualquier temor al salto en Bungee. Fantástico, no?";
 		next;
 		mes "[Chrmlim]";
 		mes "Pero...";
@@ -283,7 +283,7 @@ airplane,250,58,2	script	Airship Staff#airplane	67,{
 	mes "a la Aeronave.";
 	mes "¿Como puedo ayudarte?";
 	next;
-	switch (select("Entrar a la Aeronave:Cabina del Capitan:Instalaciones:Adios")) {
+	switch (select("Entrar a la Aeronave:Cabina del Capitán:Instalaciones:Adios")) {
 	case 1:
 		mes "[Personal Encargado]";
 		mes "Cuando veas el mensaje";
@@ -300,20 +300,20 @@ airplane,250,58,2	script	Airship Staff#airplane	67,{
 		close;
 	case 2:
 		mes "[Personal Encargado]";
-		mes "La cabina del capitan";
-		mes "esta ubicada en el frende de la aeronave";
-		mes "allí encontraras al capitan y al piloto de esta aeronave.";
+		mes "La cabina del capitán";
+		mes "esta ubicada en el frente de la aeronave";
+		mes "allí encontraras al capitán y al piloto de esta aeronave.";
 		close;
 	case 3:
 		mes "[Personal Encargado]";
 		mes "La aeronave ofrece muchos";
-		mes "Mini Juegos para el entretenemiento de todos";
+		mes "Mini Juegos para el entretenimiento de todos";
 		mes "sus pasajeros, Te invitados a que pruebes tu suerte y habilidades";
 		mes "en los diferentes Mini Juegos~";
 		close;
 	case 4:
 		mes "[Personal Encargado]";
-		mes "Bueno, Aprecio tu compañia en este vuelo";
+		mes "Bueno, Aprecio tu compañía en este vuelo";
 		mes "muchas gracias, ten un buen día.";
 		close;
 	}
@@ -341,7 +341,7 @@ airplane,72,34,6	script	Aanos#01airplane	702,{
 	mes "[Aanos]";
 	mes "Ohh wooow~";
 	mes "Mira el cielo!!";
-	mes "Es tan diferente y lindo desde aqui arriba!";
+	mes "Es tan diferente y lindo desde aquí arriba!";
 	close;
 }
 
@@ -349,8 +349,8 @@ airplane,221,158,2	script	Pilot#airplane	852,{
 	// Hugel quest addition
 	if (hg_ma1 == 3) {
 		mes "[Piloto]";
-		mes "Desearía poder ir a beber una cerveza bien fria.";
-		mes "Beber es el objetivo de mi vida, beber me da energias!";
+		mes "Desearía poder ir a beber una cerveza bien fría.";
+		mes "Beber es el objetivo de mi vida, beber me da energías!";
 		mes "No seria nada si no bebiera!";
 		next;
 		mes "[Piloto]";
